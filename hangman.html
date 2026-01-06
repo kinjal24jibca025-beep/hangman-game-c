@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hangman App</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+        margin: 0;
+        height: 100vh;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+    }
+
+    .app {
+        width: 900px;
+        height: 520px;
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+        padding: 30px;
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 42px;
+        margin-bottom: 10px;
+    }
+
+    /* Welcome Screen */
+    .welcome {
+        text-align: center;
+        margin-top: 120px;
+    }
+
+    .welcome p {
+        font-size: 18px;
+        opacity: 0.9;
+    }
+
+    .start-btn {
+        margin-top: 30px;
+        padding: 14px 40px;
+        font-size: 20px;
+        border: none;
+        border-radius: 30px;
+        background: #00e6e6;
+        color: #000;
+        cursor: pointer;
+    }
+
+    .start-btn:hover {
+        background: #00cccc;
+    }
+
+    /* Game Screen */
+    .game {
+        display: none;
+    }
+
+    .content {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+
+    canvas {
+        background: #fff;
+        border-radius: 15px;
+        padding: 10px;
+    }
+
+    .panel {
+        width: 380px;
+        background: rgba(255,255,255,0.15);
+        padding: 25px;
+        border-radius: 15px;
+    }
+
+    .hint {
+        font-size: 15px;
+        margin-bottom: 5px;
+        opacity: 0.9;
+    }
+
+    #word {
+        font-size: 30px;
+        letter-spacing: 10px;
+        margin: 20px 0;
+    }
+
+    input {
+        width: 50px;
+        font-size: 22px;
+        text-align: center;
+        border-radius: 5px;
+        border: none;
+    }
+
+    button {
+        padding: 10px 15px;
+        font-size: 16px;
+        margin-left: 5px;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+    }
+
+    #message {
+        margin-top: 15px;
+        font-size: 22px;
+        font-weight: bold;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- WELCOME SCREEN -->
+    <div class="welcome" id="welcome">
+        <h1>Welcome to Hangman Game</h1>
+        <p>Test your vocabulary and save the man!</p>
+        <button class="start-btn" onclick="startGame()">Start Game</button>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div class="game" id="game">
+        <h1>Hangman Game</h1>
+
+        <div class="content">
+            <canvas id="hangman" width="260" height="300"></canvas>
+
+            <div class="panel">
+                <div class="hint" id="hint1"></div>
+                <div class="hint" id="hint2"></div>
+
+                <div id="word"></div>
+
+                <input type="text" id="letter" maxlength="1">
+                <button onclick="guess()">Guess</button>
+                <button onclick="restart()">Restart</button>
+
+                <div id="message"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const gameData = {
+        word: "javascript",
+        hint1: "Web language",
+        hint2: "Runs in browser"
+    };
+
+    let word = gameData.word;
+    let display = Array(word.length).fill("_");
+    let wrong = 0;
+    let maxWrong = 6;
+    let over = false;
+
+    const canvas = document.getElementById("hangman");
+    const ctx = canvas.getContext("2d");
+
+    function startGame() {
+        document.getElementById("welcome").style.display = "none";
+        document.getElementById("game").style.display = "block";
+        init();
+    }
+
+    function init() {
+        document.getElementById("hint1").innerText = "Hint 1: " + gameData.hint1;
+        document.getElementById("hint2").innerText = "Hint 2: " + gameData.hint2;
+        document.getElementById("word").innerText = display.join(" ");
+        drawBase();
+    }
+
+    function drawBase() {
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(40, 260); ctx.lineTo(220, 260);
+        ctx.moveTo(80, 260); ctx.lineTo(80, 40);
+        ctx.lineTo(180, 40);
+        ctx.lineTo(180, 70);
+        ctx.stroke();
+    }
+
+    function drawMan() {
+        ctx.beginPath();
+        if (wrong === 1) ctx.arc(180, 90, 20, 0, Math.PI * 2);
+        if (wrong === 2) { ctx.moveTo(180,110); ctx.lineTo(180,170); }
+        if (wrong === 3) { ctx.moveTo(180,130); ctx.lineTo(150,150); }
+        if (wrong === 4) { ctx.moveTo(180,130); ctx.lineTo(210,150); }
+        if (wrong === 5) { ctx.moveTo(180,170); ctx.lineTo(160,210); }
+        if (wrong === 6) { ctx.moveTo(180,170); ctx.lineTo(200,210); }
+        ctx.stroke();
+    }
+
+    function guess() {
+        if (over) return;
+
+        let input = document.getElementById("letter");
+        let letter = input.value.toLowerCase();
+        input.value = "";
+
+        let found = false;
+        for (let i = 0; i < word.length; i++) {
+            if (word[i] === letter) {
+                display[i] = letter;
+                found = true;
+            }
+        }
+
+        if (!found) {
+            wrong++;
+            drawMan();
+        }
+
+        document.getElementById("word").innerText = display.join(" ");
+
+        if (!display.includes("_")) {
+            document.getElementById("message").innerText = "🎉 You Win!";
+            over = true;
+        } else if (wrong === maxWrong) {
+            document.getElementById("message").innerText =
+                "❌ Game Over! Word was: " + word;
+            over = true;
+        }
+    }
+
+    function restart() {
+        location.reload();
+    }
+</script>
+
+</body>
+</html>
