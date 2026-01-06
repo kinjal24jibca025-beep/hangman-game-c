@@ -15,7 +15,8 @@ This is a Hangman Game developed using C language with HTML & CSS interface.
 - CSS
 
 ## Screenshots
-(Add screenshots here)
+![Start Screen](screenshots/hangman_start.png)
+![Gameplay](screenshots/hangman_play.png)
 
 ## Author
 Kinjal
